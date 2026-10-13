@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gantt AKI</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+    --series-5: #e87ba4; --series-6: #008300; --series-7: #4a3aa7;
+    --today: #d03b3b;
+    --warn-bg: #fdf1de; --warn-text: #8a5a12; --warn-border: rgba(138,90,18,0.25);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --grid:           #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+      --series-5: #d55181; --series-6: #008300; --series-7: #9085e9;
+      --today: #e66767;
+      --warn-bg: #2b2110; --warn-text: #e8b565; --warn-border: rgba(232,181,101,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+    --series-5: #d55181; --series-6: #008300; --series-7: #9085e9;
+    --today: #e66767;
+    --warn-bg: #2b2110; --warn-text: #e8b565; --warn-border: rgba(232,181,101,0.3);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background: var(--page); }
+  .viz-root {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--text-primary);
+    padding: 20px;
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .top-row { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+  h1 { font-size: 19px; margin: 0 0 4px 0; font-weight: 700; text-wrap: balance; }
+  .subtitle { color: var(--text-secondary); font-size: 13px; margin: 0; }
+  .btn {
+    font: inherit; font-size: 12.5px; font-weight: 600; color: var(--text-primary);
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer;
+  }
+  .btn:hover { filter: brightness(0.96); }
+  [data-theme="dark"] .btn:hover { filter: brightness(1.15); }
+  .btn.active { background: var(--text-primary); color: var(--surface-1); border-color: var(--text-primary); }
+  .btnrow { display:flex; gap:8px; flex-wrap:wrap; }
+
+  .stat-row { display:flex; gap:12px; flex-wrap:wrap; }
+  .stat-tile { flex:1; min-width:150px; background: var(--surface-1); border:1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .stat-label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing:.03em; margin-bottom:4px; }
+  .stat-value { font-size: 20px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .stat-sub { font-size: 11.5px; color: var(--text-secondary); margin-top:2px; }
+
+  .legend { display:flex; flex-direction:column; gap:8px; font-size:12.5px; color:var(--text-secondary); }
+  .legend-item { display:flex; align-items:center; gap:8px; }
+  .legend-item .feat { color: var(--text-muted); font-size:11.5px; }
+  .swatch { width:11px; height:11px; border-radius:3px; flex-shrink:0; }
+
+  .info-row { display:flex; align-items:center; gap:10px; padding:5px 0; }
+  .info-row + .info-row { border-top:1px solid var(--grid); padding-top:9px; }
+  .info-icon {
+    position:relative; display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; background: var(--warn-bg); font-size:12px;
+    cursor:pointer; flex-shrink:0; line-height:1;
+  }
+  .info-icon:focus { outline:2px solid var(--series-1); outline-offset:2px; }
+  .tooltip-box {
+    visibility:hidden; opacity:0; pointer-events:none; position:absolute; top:calc(100% + 8px); left:0; z-index:30;
+    width:min(440px, 86vw); background:var(--surface-1); border:1px solid var(--border); border-radius:10px;
+    padding:12px 14px; font-size:12.5px; font-weight:400; line-height:1.5; color:var(--text-secondary);
+    box-shadow:0 8px 24px rgba(0,0,0,0.18); transition:opacity .15s ease, transform .15s ease; transform:translateY(-4px);
+  }
+  .info-icon:hover .tooltip-box, .info-icon:focus .tooltip-box, .info-icon.open .tooltip-box {
+    visibility:visible; opacity:1; pointer-events:auto; transform:translateY(0);
+  }
+  .tooltip-box code { background: var(--border); border-radius:4px; padding:1px 4px; }
+  .tooltip-box ul { margin:6px 0 0 0; padding-left:18px; }
+  .tooltip-box li { margin-bottom:4px; }
+  .tooltip-box b { color: var(--text-primary); }
+  .info-label { font-size:12.5px; color: var(--text-secondary); }
+
+  .gantt-wrap { display:flex; gap:0; overflow:hidden; }
+  .row-controls { flex: 0 0 380px; max-width: 380px; }
+  .row-controls-head, .track-head { height:58px; }
+  .track-scroll { flex:1; overflow-x:auto; min-width:0; }
+
+  .row-ctrl {
+    display:flex; flex-direction:column; justify-content:flex-start;
+    border-bottom:1px solid var(--grid); overflow:hidden;
+  }
+  .row-ctrl:last-child { border-bottom:none; }
+  .row-ctrl .top { height:60px; flex:0 0 60px; display:flex; align-items:center; gap:8px; padding:0 10px 0 2px; }
+  .mod-name { flex:1; min-width:0; }
+  .mod-name .code { font-size:12.5px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mod-name .lbl { font-size:11px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .stepper { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+  .stepper button {
+    width:20px; height:20px; border-radius:5px; border:1px solid var(--border); background:var(--surface-1);
+    color:var(--text-primary); font-size:13px; line-height:1; cursor:pointer; padding:0;
+  }
+  .stepper .val { font-size:12px; width:18px; text-align:center; font-variant-numeric: tabular-nums; color:var(--text-secondary); }
+  .reorder { display:flex; flex-direction:column; gap:1px; flex-shrink:0; }
+  .reorder button { width:16px; height:14px; font-size:9px; border:1px solid var(--border); background:var(--surface-1); color:var(--text-secondary); cursor:pointer; border-radius:3px; padding:0; line-height:1; }
+  .pct-box { display:flex; align-items:center; gap:2px; flex-shrink:0; }
+  .pct-box input {
+    width:38px; font: inherit; font-size:12px; padding:3px 4px; border:1px solid var(--border);
+    border-radius:6px; background:var(--surface-1); color:var(--text-primary); font-variant-numeric: tabular-nums;
+  }
+  .pct-box span { font-size:11px; color:var(--text-muted); }
+  .pct-badge { font-size:13px; font-weight:700; font-variant-numeric: tabular-nums; color:var(--text-primary); flex-shrink:0; min-width:34px; text-align:right; }
+  .detail-toggle {
+    font: inherit; font-size:11px; color:var(--text-secondary); background:none; border:1px solid var(--border);
+    border-radius:6px; padding:3px 6px; cursor:pointer; flex-shrink:0; white-space:nowrap;
+  }
+  .detail-toggle:hover { filter: brightness(0.96); }
+  [data-theme="dark"] .detail-toggle:hover { filter: brightness(1.2); }
+
+  .checklist { padding: 4px 10px 8px 30px; }
+  .check-item { display:flex; align-items:center; gap:6px; height:22px; }
+  .check-item .dot { flex-shrink:0; width:8px; height:8px; border-radius:50%; }
+  .check-item .dot.st-completada { background: #1baf7a; }
+  .check-item .dot.st-progreso   { background: #eda100; }
+  .check-item .dot.st-nueva      { background: var(--text-muted); opacity:0.5; }
+  .check-item .stag { flex-shrink:0; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:1px 5px; border-radius:4px; }
+  .check-item .stag.st-completada { color:#0d6b48; background: rgba(27,175,122,0.15); }
+  [data-theme="dark"] .check-item .stag.st-completada { color:#5fe0ac; background: rgba(27,175,122,0.2); }
+  .check-item .stag.st-progreso { color:#8a5a12; background: rgba(237,161,0,0.18); }
+  [data-theme="dark"] .check-item .stag.st-progreso { color:#f0c35f; background: rgba(237,161,0,0.22); }
+  .check-item .stag.st-nueva { color: var(--text-muted); background: var(--border); }
+  .check-item label { font-size:11px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .check-item.plain label { color: var(--text-secondary); }
+
+  .axis-months { position:relative; height:20px; border-bottom:1px solid var(--grid); }
+  .axis-months span { position:absolute; top:0; font-size:11px; color:var(--text-muted); font-weight:600; white-space:nowrap; }
+  .axis-weeks { position:relative; height:22px; }
+  .axis-weeks .wk { position:absolute; top:0; height:100%; border-left:1px solid var(--grid); font-size:10px; color:var(--text-muted); padding-left:3px; display:flex; align-items:center; white-space:nowrap; }
+  .axis-dates { position:relative; height:16px; border-bottom:1px solid var(--grid); }
+  .axis-dates .dt { position:absolute; top:0; height:100%; font-size:9.5px; color:var(--text-muted); padding-left:3px; display:flex; align-items:center; white-space:nowrap; font-variant-numeric: tabular-nums; }
+
+  .track { position:relative; }
+  .track .gridline { position:absolute; top:0; bottom:0; border-left:1px solid var(--grid); }
+  .track .today-line { position:absolute; top:0; bottom:0; border-left:2px dashed var(--today); }
+  .track .today-label { position:absolute; top:-2px; font-size:10px; color:var(--today); font-weight:700; white-space:nowrap; }
+  .track-row { position:relative; border-bottom:1px solid var(--grid); }
+  .track-row:last-child { border-bottom:none; }
+
+  .bar { position:absolute; top:14px; height:32px; border-radius:7px; overflow:hidden; }
+  .bar .base { position:absolute; inset:0; }
+  .bar .done { position:absolute; top:0; bottom:0; left:0; }
+  .bar .handle { position:absolute; right:0; top:0; bottom:0; width:8px; cursor: ew-resize; }
+  .bar .handle::after { content:""; position:absolute; right:2px; top:50%; width:3px; height:16px; margin-top:-8px; border-radius:2px; background: rgba(255,255,255,0.65); }
+  .bar .label { position:absolute; left:9px; top:0; bottom:0; display:flex; align-items:center; font-size:12px; font-weight:700; color: var(--text-primary); white-space:nowrap; pointer-events:none; }
+  .bar.dragging { opacity:0.85; }
+
+  table.data-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.data-table th, table.data-table td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--grid); }
+  table.data-table th { color:var(--text-muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.02em; }
+  table.data-table td { color:var(--text-primary); font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x:auto; }
+  [hidden] { display:none !important; }
+
+  @media (max-width: 720px) {
+    .gantt-wrap { flex-direction: column; }
+    .row-controls { flex: none; width: 100%; max-width: none; }
+    .row-controls-head { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="viz-root" id="app">
+
+  <div class="card top-row">
+    <div>
+      <h1>Roadmap AKI — Diagrama de Gantt por versión</h1>
+      <p class="subtitle" id="subtitleText">1 sprint = 1 semana (lunes a viernes). Equipo único, trabajo secuencial. Capacidad confirmada: 2 desarrolladores + 1 QA · 30h/semana c/u = 90h/sprint. El % de cada fila se calcula solo a partir de las tareas marcadas como completas — usa los +/− o arrastra el borde de la barra para ajustar sprints.</p>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="btnTable" onclick="toggleTable()">Ver tabla</button>
+      <button class="btn" id="btnTheme" onclick="toggleTheme()">Modo oscuro</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stat-row" id="statRow"></div>
+  </div>
+
+  <div class="card">
+    <div class="info-row">
+      <span class="info-icon" tabindex="0" onclick="toggleInfo(this)">📐
+        <span class="tooltip-box">El roadmap se organiza por "Versión de release": una versión puede agrupar más de un componente (Versión 2 = Gestión de usuarios y roles + Consulta de precios; Versión 5 = los dos componentes de Reportes). Cada componente se calcula por separado con <code>ceil(horas / 90h)</code>, usando siempre las horas entregadas por el equipo (no las horas de Azure DevOps), y luego se encadena en el orden mostrado, sin huecos. Las fechas ya descuentan los feriados de Guatemala que caen entre semana en este rango (Independencia 15 sep, Revolución 20 oct, Navidad 25 dic, Año Nuevo 1 ene): cada uno corre el inicio del siguiente bloque un día. "Infraestructura" ahora también tiene Feature real en Azure DevOps (Feature 22047) — su % se calcula igual que los demás, a partir del checklist de sus items.</span>
+      </span>
+      <span class="info-label">Estructura por versión</span>
+    </div>
+    <div class="info-row">
+      <span class="info-icon" tabindex="0" onclick="toggleInfo(this)">🔄
+        <span class="tooltip-box">El checklist de cada versión (▸ junto al %) muestra las User Story y QA reales debajo de cada Feature. El % de cada item — y con eso el % de la barra — sale de a quién está asignado y en qué estado está en ADO, no de las horas:
+          <ul>
+            <li><b>Completada (100%):</b> Rodrigo Solis o Moises Ernesto Cuca Vas en estado Ready o Closed; Samuel Alejandro Ruiz Escalona en estado Ready o Closed.</li>
+            <li><b>En Progreso (50%):</b> Rodrigo Solis o Moises Ernesto Cuca Vas en estado Resolved.</li>
+            <li><b>En Progreso (0%):</b> Rodrigo Solis o Moises Ernesto Cuca Vas en estado Active; Samuel en estado Active o Resolved.</li>
+            <li><b>Nueva (0%):</b> estado New o Design de cualquiera de los tres, y cualquier item sin asignar o asignado a alguien que no es parte del equipo de desarrollo (por ejemplo, quien crea los Features).</li>
+          </ul>
+          El % de la barra es el promedio del % de todos los items de esa versión. Cobertura real (13 oct 2026, a partir del árbol del query "Claude Data" en ADO): Infraestructura 14 items (avance 79%, Feature 22047 — fuera del alcance de esta corrida automática según el prompt vigente, ver nota de ambigüedad pendiente en roadmap-modulos.md), Gestión de usuarios y roles 34 items (avance 51%, bajó desde 57%: dos casos de QA de Samuel — "1.4" y "1.5" — pasaron de Ready a Resolved, de 100% a 0% cada uno), Consulta de precios 18 items (avance 28%, bajó desde 29%: se sumaron 2 items nuevos de Rodrigo Solis en Active — "AkiConteos: mostrar el kardex del producto" y "2.3.2 - Compilar Imágenes catalogo truper" — y se quitó 1 item que ya no existe en ADO, "Mostrar imagen del producto para facilitar los conteos"), Conteo diario y especial 29 items (avance 36%, subió desde 35%: se quitó 1 item que ya no existe en ADO, "3.0.13 Estandarizar permisos para los endpoints de conteo"), Reportes Conteo Diario y Especial 10 items (0%, todos "New" y sin asignar todavía, sin cambios). Recepción Zigo/Mercadería y Reportes de Recepción (Features 15595 y 15596) siguen sin items hijos en ADO, así que muestran el alcance manual (bullets sin estatus) y su % se sigue reportando a mano. <b>Las horas y los sprints de las 7 versiones son siempre las que entregó el equipo</b> (320/300/308/340/360/320/170h) — Azure DevOps solo alimenta el % de avance, no la duración de los sprints.</span>
+      </span>
+      <span class="info-label">Avance real desde Azure DevOps (13 oct 2026)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="card" id="ganttCard">
+    <div class="gantt-wrap">
+      <div class="row-controls">
+        <div class="row-controls-head"></div>
+        <div id="rowControls"></div>
+      </div>
+      <div class="track-scroll">
+        <div id="axisMonths" class="axis-months"></div>
+        <div id="axisWeeks" class="axis-weeks"></div>
+        <div id="axisDates" class="axis-dates"></div>
+        <div id="track" class="track"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-scroll" id="tableCard" hidden>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Versión</th><th>Componente</th><th>Sprints</th><th>Inicio</th><th>Fin</th><th>% completado</th><th>Tareas</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var DAY = 86400000, WEEK = 7*DAY;
+  var START = Date.UTC(2026,7,17); // 17 ago 2026, lunes
+  var TODAY = Date.UTC(2026,9,13); // 13 oct 2026
+  var DAY_PX = 16;
+  var TOP_H = 60, CHECK_ITEM_H = 22, CHECK_PAD = 12;
+
+  // Feriados de Guatemala (entre semana) dentro del rango del roadmap.
+  // Cada uno no cuenta como día laboral: el bloque en que cae se extiende un día.
+  var HOLIDAYS = {};
+  [
+    Date.UTC(2026,8,15),  // 15 sep 2026 — Día de la Independencia
+    Date.UTC(2026,9,20),  // 20 oct 2026 — Día de la Revolución
+    Date.UTC(2026,11,25), // 25 dic 2026 — Navidad
+    Date.UTC(2027,0,1)    // 1 ene 2027 — Año Nuevo
+  ].forEach(function(ms){ HOLIDAYS[ms] = true; });
+  function isWeekday(ms){ var day = new Date(ms).getUTCDay(); return day !== 0 && day !== 6; }
+  function isWorkday(ms){ return isWeekday(ms) && !HOLIDAYS[ms]; }
+
+  var MODS = [
+    {id:'v1',  code:'Versión 1', label:'Infraestructura', slot:1, source:'ado', feature:'22047', subtasks:[
+      {t:'AKI: Conteos V2, Identificar tablas fuente para funcionalidades de AKI Conteos V2 (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- Sizing de Conteos V2 (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- Sizing de Conteos V2 (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- AkiConteos v2 - Documentación arquitectura (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- AkiConteos v2 - Infraestructura 1 (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- AkiConteos v2 - Infraestructura 2 (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- AkiConteos v2 - Infraestructura 2 (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Conteos V2 - Revisar la solución de Jeimy (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- AkiConteos v2 - Infraestructura 3 (sin estimar) — Rodrigo Solis, Design → Nueva (0%)', p:0, l:'N'},
+      {t:'AKI- AkiConteos v2 - Infraestructura 3 (sin estimar) — Moises Ernesto Cuca Vas, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'Conteos V2 - Revisar la solución de Jeimy - Generar una versión escalable con la arquitectura actual (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Conteos V2 - Revisar la solución de Jeimy - Generar un estándar para la migración de prototipos (sin estimar) — Moises Ernesto Cuca Vas, Design → Nueva (0%)', p:0, l:'N'},
+      {t:'Conteos V2 - Revisar la solución de Jeimy - Generar una versión escalable con la arquitectura actual - Copy (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- Sizing de nuevas funcionalidades de Consulta akiconteos v2 (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'}
+    ]},
+    {id:'v2a', code:'Versión 2', label:'Gestión de usuarios y roles (300h)', slot:2, source:'ado', feature:'15663', subtasks:[
+      {t:'1.1 Login corporativo con Microsoft 365 (36h) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.1 Login corporativo con Microsoft 365 - Custom Extensions (0h) — Rodrigo Solis, New → Nueva (0%)', p:0, l:'N'},
+      {t:'1.1 [QA-Casos] Login corporativo con Microsoft 365 (9h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.1 [QA] Login corporativo con Microsoft 365 (15h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.10 Carga masiva: creación de pre-asignaciones y resumen de resultados (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.10 Carga masiva: creación de pre-asignaciones y resumen de resultados (sin estimar) — Samuel Alejandro Ruiz Escalona, Design → Nueva (0%)', p:0, l:'N'},
+      {t:'1.10 [QA-Casos] Carga masiva: creación de pre-asignaciones y resumen (2.4h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.11 Enforcement de permisos por tienda/región en backend (seguridad) (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.11 Enforcement de permisos por tienda/región en backend (seguridad) (sin estimar) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
+      {t:'1.11 [QA-Casos] Enforcement de permisos por tienda/región en backend (9h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.11.1 [QA] MS Usuarios - Validación uso de API (24h) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'1.2 Vinculación de cuenta autenticada con perfil/pre-asignación (14.4h) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.2 Vinculación de cuenta autenticada con perfil/pre-asignación (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.2 [QA-Casos] Vinculación de cuenta autenticada con perfil/pre-asignación (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.3 Listado, búsqueda y filtrado de usuarios (14.4h) — Rodrigo Solis, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'1.3 Listado, búsqueda y filtrado de usuarios (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.3 [QA-Casos] Listado, búsqueda y filtrado de usuarios (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.4 Alta individual de usuario (\"Nuevo Usuario\") (24h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.4 Alta individual de usuario (\"Nuevo Usuario\") (sin estimar) — Samuel Alejandro Ruiz Escalona, Resolved → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.4 [QA-Casos] Alta individual de usuario (\"Nuevo Usuario\") (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (8h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (sin estimar) — Samuel Alejandro Ruiz Escalona, Resolved → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.5 [QA-Casos] Edición de rol, tienda, región y estado de un usuario (1.2h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (8h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.6 [QA-Casos] Modelo Región → Tiendas y reasignación automática de Supervisor (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.8 Carga masiva de usuarios: archivo/CSV y parseo tolerante (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.8 Carga masiva de usuarios: archivo/CSV y parseo tolerante (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.8 [QA-Casos] Carga masiva de usuarios: archivo/CSV y parseo tolerante (3h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'1.9 Carga masiva: validación previa y vista previa (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.9 Carga masiva: validación previa y vista previa (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.9 [QA-Casos] Carga masiva: validación previa y vista previa (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Revisar QA-Cases para TDD - Módulo 1 - Usuarios (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'2.3.1 Definir arquitectura y funcionamiento de repositorio de imágenes (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'}
+    ]},
+    {id:'v2b', code:'Versión 2', label:'Consulta de precios (308h)', slot:3, source:'ado', feature:'6439', subtasks:[
+      {t:'AkiConteos: mostrar el kardex del producto (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.1 Búsqueda de producto por SKU (manual y escáner Zebra) (sin estimar) — Moises Ernesto Cuca Vas, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.2 Búsqueda vía parámetro URL (?sku=) (sin estimar) — Moises Ernesto Cuca Vas, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.4 Precio normal y precio oferta con validación de vigencia (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.5 Tarjetas de inventario (Existencia, Tránsito, OC, Múltiplo, Mínimo, Máximo) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.6 Existencias en bodega HPC (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.6 [QA-Casos] Existencias en bodega HPC (3h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'2.8 Solicitud de Ajuste de Inventario (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.8 [QA-Casos] Solicitud de Ajuste de Inventario (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'2.9 Revisión de solicitudes de ajuste (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.9 [QA-Casos] Revisión de solicitudes de ajuste (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'2.10 Diseño responsive Zebra vs. escritorio (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.10 [QA-Casos] Diseño responsive (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'2.3 Ficha de producto: datos generales e imagen ampliable (60h) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.7 Kardex de movimientos (últimos N, parametrizable) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.7 [QA-Casos] Kardex de movimientos (4h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'AKI- ConteosV2-Consulta: Búsqueda inteligente de SKU en Consulta de Productos (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.3.2 - Compilar Imágenes catalogo truper (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'}
+    ]},
+    {id:'v3',  code:'Versión 3', label:'Conteo diario y especial (340h)', slot:4, source:'ado', feature:'15592', subtasks:[
+      {t:'3.1 Subir plantilla de Conteo Diario por archivo (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2 Crear plantilla a partir de ajustes recientes (por costo) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2.1 Visualización de Conteos Diarios por estado (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2.2 Cálculo del estado \"Vencido\" por vigencia (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2.3 Registrar responsable del Conteo Diario mediante badge (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2.5 Registrar cantidades contadas mediante escaneo barra (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2.5.b Registrar cantidades contadas mediante escaneo SKU (código de artículo) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2.6 Validar que el SKU escaneado pertenezca al Conteo Diario (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.2.7 Finalizar Conteo Diario y generar diferencias (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.3 Crear plantilla aleatoria de productos no contados (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.4 Configurar alcance y calendarización de la plantilla (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'3.5 Generar registros de Conteo Diario a partir de una plantilla (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'Adaptar pruebas unitarias sobre la lógica existente de la entidad Count (sin estimar) — Rodrigo Solis, Ready → Completada (100%)', p:100, l:'C'},
+      {t:'AKI-TA - Configurar ambiente para testing (12h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Completar un Conteo (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Construir el flujo de solicitud de Conteo Diario desde la entrada (sin estimar) — Moises Ernesto Cuca Vas, New → Nueva (0%)', p:0, l:'N'},
+      {t:'Construir la lógica de creación de Conteo Especial y agregado (sin estimar) — Moises Ernesto Cuca Vas, New → Nueva (0%)', p:0, l:'N'},
+      {t:'Consultar Conteos (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Consultar los detalles de un conteo (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Conteo Diario: Permitir Subir archivos para toda la semana y que se liberen a cierta hora (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'Creación de Conteo (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Definir escenarios de aceptación para la funcionalidad existente de Counting (sin estimar) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
+      {t:'Escribir criterios de aceptación y escenarios de prueba para el flujo de Conteo Diario (sin estimar) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
+      {t:'Escribir criterios de aceptación y escenarios de prueba (Conteo Especial) (sin estimar) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
+      {t:'Iniciar un Conteo (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Registrar un entrada en el conteo (sin estimar) — Rodrigo Solis, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'Test - Creación de conteo (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Test - Iniciar un conteo (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'Test - Completar conteo (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'}
+    ]},
+    {id:'v4',  code:'Versión 4', label:'Recepción Zigo y Recepción de Mercadería (360h)', slot:5, feature:'15595', subtasks:[
+      {t:'Recepción Zigo: funcionalidades de recepción con información de Zigo.'},
+      {t:'Recepción Zigo: datos requeridos, validaciones e integración.'},
+      {t:'Recepción de mercadería: flujo de recepción de órdenes/facturas.'},
+      {t:'Recepción de mercadería: sobrantes, faltantes, guías, bultos y confirmación.'}
+    ]},
+    {id:'v5a', code:'Versión 5', label:'Reportes Conteo Diario y Especial (320h)', slot:6, source:'ado', feature:'15594', subtasks:[
+      {t:'4.1 Estructura base del módulo Reportes (tabs y tab por defecto por rol) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.2 Arquitectura de transferencia de datos entre microservicios (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.3 Pestaña Estado Tiendas Hoy (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.4 Pestaña Conteo Diario: listado general y detalle por SKU (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.5.1 Exportación de reporte a .xlsx (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.5 Exportación de Conteo Diario a .xlsx (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.6 Pestaña Conteo Especial: listado general y detalle por SKU (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.7 Exportación de Conteo Especial a .xlsx (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.8 Pestaña Ajustes con trazabilidad al conteo origen (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'4.10 Enforcement de permisos backend para Reportes (seguridad) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'}
+    ]},
+    {id:'v5b', code:'Versión 5', label:'Reportes de Recepción Zigo y Recepción Mercadería (170h)', slot:7, feature:'15596', subtasks:[
+      {t:'Definir alcance de reportes de recepción Zigo.'},
+      {t:'Definir alcance de reportes de recepción de mercadería.'}
+    ]}
+  ];
+  MODS.forEach(function(m){ m.name = m.code + ' — ' + m.label; });
+  var byId = {}; MODS.forEach(function(m){ byId[m.id] = m; });
+
+  var state = {};
+  MODS.forEach(function(m){
+    if (m.subtasks) {
+      state[m.id] = {
+        sprints: 0,
+        pct: 0,
+        subtasks: m.subtasks.map(function(o){ return {text:o.t, pct: (typeof o.p === 'number') ? o.p : null, lbl: o.l || null}; })
+      };
+    } else {
+      state[m.id] = { sprints: 0, pct: 0 };
+    }
+  });
+  // Capacidad confirmada: 2 desarrolladores + 1 QA, 30h/semana c/u = 90h/sprint.
+  // Sprints = ceil(horas del componente / 90h). Cada componente se calcula individual, no combinado por versión.
+  // Horas: se conservan las horas entregadas por el equipo para TODOS los componentes (no las horas de Azure DevOps).
+  state['v1'].sprints  = 4;  // Infraestructura: 320h → ceil(320h / 90h)
+  state['v2a'].sprints = 4;  // Gestión de usuarios y roles: 300h → ceil(300h / 90h)
+  state['v2b'].sprints = 4;  // Consulta de precios: 308h → ceil(308h / 90h)
+  state['v3'].sprints  = 4;  // Conteo diario y especial: 340h → ceil(340h / 90h)
+  state['v4'].sprints  = 4;  // Recepción Zigo y Recepción de Mercadería: 360h → ceil(360h / 90h)
+  state['v5a'].sprints = 4;  // Reportes Conteo Diario y Especial: 320h → ceil(320h / 90h)
+  state['v5b'].sprints = 2;  // Reportes de Recepción Zigo y Recepción Mercadería: 170h → ceil(170h / 90h)
+
+  var order = MODS.map(function(m){ return m.id; });
+  var theme = 'light';
+  var expanded = {};
+
+  var MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  function fmtDate(ms){
+    var d = new Date(ms);
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+  }
+  function fmtDateShort(ms){
+    var d = new Date(ms);
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
+  }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function escapeHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  var STATUS = {
+    C: {lbl:'Completada', cls:'st-completada'},
+    P: {lbl:'En Progreso', cls:'st-progreso'},
+    N: {lbl:'Nueva', cls:'st-nueva'}
+  };
+  function statusOf(code){
+    return STATUS[code] || STATUS.N;
+  }
+  // El % de cada versión con Feature real en Azure DevOps (source:'ado') es el promedio
+  // del % de cada work item (User Story + QA), calculado a partir de Assigned To + State
+  // según la tabla de estatus acordada con el equipo. Las versiones sin Feature en ADO
+  // (Recepción Zigo/Mercadería, Reportes de Recepción) usan un % manual.
+  function getPct(id){
+    var m = byId[id], s = state[id];
+    if (m.source === 'ado') {
+      if (!s.subtasks.length) return 0;
+      var sum = s.subtasks.reduce(function(acc,t){ return acc + (t.pct===null?0:t.pct); }, 0);
+      return Math.round(sum / s.subtasks.length);
+    }
+    return s.pct;
+  }
+  function getAdoCounts(id){
+    var m = byId[id], s = state[id];
+    if (m.source !== 'ado') return null;
+    var done = s.subtasks.filter(function(t){ return t.pct === 100; }).length;
+    return {done:done, total:s.subtasks.length};
+  }
+
+  function rowHeight(id){
+    var s = state[id];
+    if (s.subtasks && expanded[id]) {
+      return TOP_H + s.subtasks.length * CHECK_ITEM_H + CHECK_PAD;
+    }
+    return TOP_H;
+  }
+
+  function schedule(){
+    var cursor = START, out = []; // cursor siempre cae en lunes
+    order.forEach(function(id){
+      var s = state[id];
+      var startMs = cursor;
+      var workdaysNeeded = s.sprints * 5;
+      var d = cursor, workdaysDone = 0, lastWorkday = startMs;
+      while (workdaysDone < workdaysNeeded) {
+        if (isWorkday(d)) { workdaysDone++; lastWorkday = d; }
+        d += DAY;
+      }
+      var endMs = lastWorkday;
+      out.push({id:id, startMs:startMs, endMs:endMs});
+      // el siguiente bloque arranca el lunes siguiente al último día laboral usado
+      var nd = endMs + DAY;
+      while (new Date(nd).getUTCDay() !== 1) { nd += DAY; }
+      cursor = nd;
+    });
+    return {rows: out, timelineEnd: cursor};
+  }
+
+  function setSprints(id, delta){
+    state[id].sprints = clamp(state[id].sprints + delta, 1, 12);
+    render();
+  }
+  function setPct(id, val){
+    var v = parseInt(val, 10);
+    if (isNaN(v)) v = 0;
+    state[id].pct = clamp(v, 0, 100);
+    render();
+  }
+  function moveRow(id, dir){
+    var i = order.indexOf(id);
+    var j = i + dir;
+    if (j < 0 || j >= order.length) return;
+    order[i] = order[j]; order[j] = id;
+    render();
+  }
+  function toggleExpand(id){
+    expanded[id] = !expanded[id];
+    render();
+  }
+  window.setSprints = setSprints;
+  window.setPct = setPct;
+  window.moveRow = moveRow;
+  window.toggleExpand = toggleExpand;
+
+  function toggleInfo(el){
+    var wasOpen = el.classList.contains('open');
+    document.querySelectorAll('.info-icon.open').forEach(function(o){ o.classList.remove('open'); });
+    if (!wasOpen) el.classList.add('open');
+  }
+  window.toggleInfo = toggleInfo;
+  document.addEventListener('click', function(e){
+    if (e.target.closest && e.target.closest('.info-icon')) return;
+    document.querySelectorAll('.info-icon.open').forEach(function(o){ o.classList.remove('open'); });
+  });
+
+  function toggleTheme(){
+    theme = theme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('btnTheme').textContent = theme === 'light' ? 'Modo oscuro' : 'Modo claro';
+  }
+  window.toggleTheme = toggleTheme;
+
+  var tableVisible = false;
+  function toggleTable(){
+    tableVisible = !tableVisible;
+    document.getElementById('tableCard').hidden = !tableVisible;
+    document.getElementById('ganttCard').hidden = tableVisible;
+    document.getElementById('btnTable').classList.toggle('active', tableVisible);
+    document.getElementById('btnTable').textContent = tableVisible ? 'Ver Gantt' : 'Ver tabla';
+  }
+  window.toggleTable = toggleTable;
+
+  function render(){
+    var sched = schedule();
+    var rows = sched.rows;
+    var totalDays = (sched.timelineEnd - START) / DAY;
+    var widthPx = totalDays * DAY_PX;
+
+    var totalSprints = 0, weightedPct = 0;
+    order.forEach(function(id){ totalSprints += state[id].sprints; weightedPct += state[id].sprints * getPct(id); });
+    var overallPct = totalSprints ? Math.round(weightedPct / totalSprints) : 0;
+    var lastEnd = rows[rows.length-1].endMs;
+    var statRow = document.getElementById('statRow');
+    statRow.innerHTML = '';
+    [
+      ['Inicio del roadmap', fmtDate(START), 'lunes, sprint 1'],
+      ['Fecha de release (provisional)', fmtDate(lastEnd), 'sprints pendientes de confirmar'],
+      ['Total de sprints (provisional)', totalSprints + ' sprints', totalSprints + ' semanas de equipo'],
+      ['Avance general', overallPct + '%', 'promedio ponderado por sprints']
+    ].forEach(function(t){
+      var el = document.createElement('div');
+      el.className = 'stat-tile';
+      el.innerHTML = '<div class="stat-label">'+t[0]+'</div><div class="stat-value">'+t[1]+'</div><div class="stat-sub">'+t[2]+'</div>';
+      statRow.appendChild(el);
+    });
+
+    var legend = document.getElementById('legend');
+    legend.innerHTML = '';
+    order.forEach(function(id){
+      var m = byId[id];
+      var item = document.createElement('div');
+      item.className = 'legend-item';
+      var featHtml = m.feature ? ' <span class="feat">(Feature '+m.feature+')</span>' : (m.id==='v1' ? ' <span class="feat">(proceso manual, sin Feature)</span>' : '');
+      item.innerHTML = '<span class="swatch" style="background:var(--series-'+m.slot+')"></span><span>'+m.name+featHtml+'</span>';
+      legend.appendChild(item);
+    });
+
+    // row controls
+    var rc = document.getElementById('rowControls');
+    rc.innerHTML = '';
+    order.forEach(function(id, idx){
+      var m = byId[id], s = state[id];
+      var pct = getPct(id);
+      var h = rowHeight(id);
+      var el = document.createElement('div');
+      el.className = 'row-ctrl';
+      el.style.height = h + 'px';
+
+      var pctHtml;
+      if (m.source === 'ado') {
+        pctHtml = '<span class="pct-badge">'+pct+'%</span>';
+      } else {
+        pctHtml = '<div class="pct-box"><input type="number" min="0" max="100" value="'+s.pct+'" onchange="setPct(\''+id+'\', this.value)"><span>%</span></div>';
+      }
+      if (s.subtasks && s.subtasks.length) {
+        var dc = getAdoCounts(id);
+        var toggleLbl = dc ? (dc.done+'/'+dc.total) : (s.subtasks.length+' items');
+        pctHtml += '<button class="detail-toggle" onclick="toggleExpand(\''+id+'\')">'+(expanded[id]?'&#9662;':'&#9656;')+' '+toggleLbl+'</button>';
+      }
+
+      var topHtml =
+        '<div class="top">'+
+          '<div class="reorder">'+
+            '<button onclick="moveRow(\''+id+'\',-1)" '+(idx===0?'disabled':'')+'>&#9650;</button>'+
+            '<button onclick="moveRow(\''+id+'\',1)" '+(idx===order.length-1?'disabled':'')+'>&#9660;</button>'+
+          '</div>'+
+          '<div class="mod-name"><div class="code">'+m.code+'</div><div class="lbl" title="'+escapeHtml(m.label)+'">'+m.label+'</div></div>'+
+          '<div class="stepper">'+
+            '<button onclick="setSprints(\''+id+'\',-1)">&minus;</button>'+
+            '<span class="val">'+s.sprints+'</span>'+
+            '<button onclick="setSprints(\''+id+'\',1)">+</button>'+
+          '</div>'+
+          pctHtml+
+        '</div>';
+
+      var checklistHtml = '';
+      if (s.subtasks && s.subtasks.length && expanded[id]) {
+        checklistHtml = '<div class="checklist">' + s.subtasks.map(function(t){
+          if (t.pct === null || t.pct === undefined) {
+            return '<div class="check-item plain">'+
+              '<span class="dot st-nueva" style="opacity:.25"></span>'+
+              '<label title="'+escapeHtml(t.text)+'">'+escapeHtml(t.text)+'</label>'+
+              '</div>';
+          }
+          var st = statusOf(t.lbl);
+          return '<div class="check-item">'+
+            '<span class="dot '+st.cls+'"></span>'+
+            '<span class="stag '+st.cls+'">'+st.lbl+'</span>'+
+            '<label title="'+escapeHtml(t.text)+'">'+escapeHtml(t.text)+'</label>'+
+            '</div>';
+        }).join('') + '</div>';
+      }
+
+      el.innerHTML = topHtml + checklistHtml;
+      rc.appendChild(el);
+    });
+
+    // axis
+    var axisMonths = document.getElementById('axisMonths');
+    var axisWeeks = document.getElementById('axisWeeks');
+    var axisDates = document.getElementById('axisDates');
+    axisMonths.style.width = widthPx + 'px';
+    axisWeeks.style.width = widthPx + 'px';
+    axisDates.style.width = widthPx + 'px';
+    axisMonths.innerHTML = '';
+    axisWeeks.innerHTML = '';
+    axisDates.innerHTML = '';
+    var monthSeen = {};
+    for (var d = 0; d < totalDays; d += 1) {
+      var ms = START + d*DAY;
+      var dt = new Date(ms);
+      var key = dt.getUTCFullYear()+'-'+dt.getUTCMonth();
+      if (dt.getUTCDate() === 1 || d === 0) {
+        if (!monthSeen[key]) {
+          monthSeen[key] = true;
+          var lbl = document.createElement('span');
+          lbl.style.left = (d*DAY_PX) + 'px';
+          lbl.textContent = MONTHS[dt.getUTCMonth()] + ' ' + dt.getUTCFullYear();
+          axisMonths.appendChild(lbl);
+        }
+      }
+    }
+    for (var w = 0; w*7 < totalDays; w++) {
+      var wk = document.createElement('div');
+      wk.className = 'wk';
+      wk.style.left = (w*7*DAY_PX) + 'px';
+      wk.style.width = (7*DAY_PX) + 'px';
+      wk.textContent = 'S' + (w+1);
+      axisWeeks.appendChild(wk);
+
+      var dtCell = document.createElement('div');
+      dtCell.className = 'dt';
+      dtCell.style.left = (w*7*DAY_PX) + 'px';
+      dtCell.style.width = (7*DAY_PX) + 'px';
+      dtCell.textContent = fmtDateShort(START + w*7*DAY);
+      axisDates.appendChild(dtCell);
+    }
+
+    // track
+    var track = document.getElementById('track');
+    track.innerHTML = '';
+    track.style.width = widthPx + 'px';
+    for (var w2 = 0; w2*7 <= totalDays; w2++) {
+      var gl = document.createElement('div');
+      gl.className = 'gridline';
+      gl.style.left = (w2*7*DAY_PX) + 'px';
+      track.appendChild(gl);
+    }
+    if (TODAY >= START && TODAY <= sched.timelineEnd) {
+      var tl = document.createElement('div');
+      tl.className = 'today-line';
+      tl.style.left = (((TODAY-START)/DAY)*DAY_PX) + 'px';
+      track.appendChild(tl);
+      var tlab = document.createElement('div');
+      tlab.className = 'today-label';
+      tlab.style.left = (((TODAY-START)/DAY)*DAY_PX + 4) + 'px';
+      tlab.textContent = 'hoy';
+      track.appendChild(tlab);
+    }
+
+    rows.forEach(function(r){
+      var m = byId[r.id], s = state[r.id];
+      var pct = getPct(r.id);
+      var h = rowHeight(r.id);
+      var trackRow = document.createElement('div');
+      trackRow.className = 'track-row';
+      trackRow.style.height = h + 'px';
+
+      var leftDays = (r.startMs - START) / DAY;
+      var widthDays = Math.round((r.endMs - r.startMs) / DAY) + 1;
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.left = (leftDays*DAY_PX) + 'px';
+      bar.style.width = (widthDays*DAY_PX) + 'px';
+      bar.title = m.name + '\n' + s.sprints + ' sprint(s)\n' + fmtDate(r.startMs) + ' → ' + fmtDate(r.endMs) + '\n' + pct + '% completado';
+
+      var base = document.createElement('div');
+      base.className = 'base';
+      base.style.background = 'color-mix(in srgb, var(--series-'+m.slot+') 22%, var(--surface-1))';
+      bar.appendChild(base);
+
+      var done = document.createElement('div');
+      done.className = 'done';
+      done.style.width = pct + '%';
+      done.style.background = 'var(--series-'+m.slot+')';
+      bar.appendChild(done);
+
+      var label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = pct + '%';
+      bar.appendChild(label);
+
+      var handle = document.createElement('div');
+      handle.className = 'handle';
+      bar.appendChild(handle);
+      attachDrag(handle, r.id);
+
+      trackRow.appendChild(bar);
+      track.appendChild(trackRow);
+    });
+
+    // table
+    var tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    rows.forEach(function(r, idx){
+      var m = byId[r.id], s = state[r.id];
+      var pct = getPct(r.id);
+      var dc = getAdoCounts(r.id);
+      var tr = document.createElement('tr');
+      var tds = [
+        String(idx+1),
+        m.code,
+        m.label,
+        s.sprints + ' sprint' + (s.sprints>1?'s':''),
+        fmtDate(r.startMs),
+        fmtDate(r.endMs),
+        pct + '%',
+        dc ? (dc.done + '/' + dc.total) : '—'
+      ];
+      tds.forEach(function(v){
+        var td = document.createElement('td');
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function attachDrag(handle, id){
+    handle.addEventListener('pointerdown', function(ev){
+      ev.preventDefault();
+      var startX = ev.clientX;
+      var initial = state[id].sprints;
+      var bar = handle.parentElement;
+      bar.classList.add('dragging');
+      function onMove(e){
+        var dx = e.clientX - startX;
+        var deltaWeeks = Math.round(dx / (7*DAY_PX));
+        var next = clamp(initial + deltaWeeks, 1, 12);
+        if (next !== state[id].sprints) {
+          state[id].sprints = next;
+          render();
+        }
+      }
+      function onUp(){
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
