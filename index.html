@@ -226,7 +226,7 @@
   <div class="card">
     <div class="info-row">
       <span class="info-icon" tabindex="0" onclick="toggleInfo(this)">📐
-        <span class="tooltip-box">El roadmap se organiza por "Versión de release": una versión puede agrupar más de un componente (Versión 2 = Gestión de usuarios y roles + Consulta de precios; Versión 5 = los dos componentes de Reportes). Cada componente se calcula por separado con <code>ceil(horas / 90h)</code>, usando siempre las horas entregadas por el equipo (no las horas de Azure DevOps), y luego se encadena en el orden mostrado, sin huecos. Las fechas ya descuentan los feriados de Guatemala que caen entre semana en este rango (Independencia 15 sep, Revolución 20 oct, Navidad 25 dic, Año Nuevo 1 ene): cada uno corre el inicio del siguiente bloque un día. "Infraestructura" ahora también tiene Feature real en Azure DevOps (Feature 22047) — su % se calcula igual que los demás, a partir del checklist de sus items.</span>
+        <span class="tooltip-box">El roadmap se organiza por "Versión de release": una versión puede agrupar más de un componente (Versión 2 = Gestión de usuarios y roles + Consulta de precios; Versión 5 = los dos componentes de Reportes). Cada componente se calcula por separado con <code>ceil(horas / 90h)</code>, usando siempre las horas entregadas por el equipo (no las horas de Azure DevOps), y luego se encadena en el orden mostrado, sin huecos. Las fechas ya descuentan los feriados de Guatemala que caen entre semana en este rango (Independencia 15 sep, Revolución 20 oct, Navidad 25 dic, Año Nuevo 1 ene): cada uno corre el inicio del siguiente bloque un día. Las 7 versiones ya tienen Feature real en Azure DevOps — el % de cada una se calcula igual, a partir del checklist de sus items (salvo Recepción Zigo/Mercadería y Reportes de Recepción, cuyos Features todavía no tienen work items hijos y se reportan a mano).</span>
       </span>
       <span class="info-label">Estructura por versión</span>
     </div>
@@ -239,9 +239,9 @@
             <li><b>En Progreso (0%):</b> Rodrigo Solis o Moises Ernesto Cuca Vas en estado Active; Samuel en estado Active o Resolved.</li>
             <li><b>Nueva (0%):</b> estado New o Design de cualquiera de los tres, y cualquier item sin asignar o asignado a alguien que no es parte del equipo de desarrollo (por ejemplo, quien crea los Features).</li>
           </ul>
-          El % de la barra es el promedio del % de todos los items de esa versión. Cobertura real (13 oct 2026, a partir del árbol del query "Claude Data" en ADO): Infraestructura 14 items (avance 79%, Feature 22047 — fuera del alcance de esta corrida automática según el prompt vigente, ver nota de ambigüedad pendiente en roadmap-modulos.md), Gestión de usuarios y roles 34 items (avance 51%, bajó desde 57%: dos casos de QA de Samuel — "1.4" y "1.5" — pasaron de Ready a Resolved, de 100% a 0% cada uno), Consulta de precios 18 items (avance 28%, bajó desde 29%: se sumaron 2 items nuevos de Rodrigo Solis en Active — "AkiConteos: mostrar el kardex del producto" y "2.3.2 - Compilar Imágenes catalogo truper" — y se quitó 1 item que ya no existe en ADO, "Mostrar imagen del producto para facilitar los conteos"), Conteo diario y especial 29 items (avance 36%, subió desde 35%: se quitó 1 item que ya no existe en ADO, "3.0.13 Estandarizar permisos para los endpoints de conteo"), Reportes Conteo Diario y Especial 10 items (0%, todos "New" y sin asignar todavía, sin cambios). Recepción Zigo/Mercadería y Reportes de Recepción (Features 15595 y 15596) siguen sin items hijos en ADO, así que muestran el alcance manual (bullets sin estatus) y su % se sigue reportando a mano. <b>Las horas y los sprints de las 7 versiones son siempre las que entregó el equipo</b> (320/300/308/340/360/320/170h) — Azure DevOps solo alimenta el % de avance, no la duración de los sprints.</span>
+          El % de la barra es el promedio del % de todos los items de esa versión. Cobertura real (14 oct 2026, a partir del árbol del query "Claude Data" en ADO): Infraestructura 14 items (avance 79%, sin cambios), Gestión de usuarios y roles 34 items (avance 57%, subió desde 51%: dos casos de QA de Samuel — "1.4" y "1.5" — pasaron de Resolved a Ready, de 0% a 100% cada uno), Consulta de precios 18 items (avance 28%, sin cambios), Conteo diario y especial 29 items (avance 36%, sin cambios), Reportes Conteo Diario y Especial 10 items (0%, todos "New" y sin asignar, sin cambios). Recepción Zigo/Mercadería y Reportes de Recepción (Features 15595 y 15596) siguen sin items hijos en ADO, así que muestran el alcance manual (bullets sin estatus) y su % se sigue reportando a mano. <b>Las horas y los sprints de las 7 versiones son siempre las que entregó el equipo</b> (320/300/308/340/360/320/170h) — Azure DevOps solo alimenta el % de avance, no la duración de los sprints.</span>
       </span>
-      <span class="info-label">Avance real desde Azure DevOps (13 oct 2026)</span>
+      <span class="info-label">Avance real desde Azure DevOps (14 oct 2026)</span>
     </div>
   </div>
 
@@ -277,7 +277,7 @@
 (function(){
   var DAY = 86400000, WEEK = 7*DAY;
   var START = Date.UTC(2026,7,17); // 17 ago 2026, lunes
-  var TODAY = Date.UTC(2026,9,13); // 13 oct 2026
+  var TODAY = Date.UTC(2026,9,14); // 14 oct 2026
   var DAY_PX = 16;
   var TOP_H = 60, CHECK_ITEM_H = 22, CHECK_PAD = 12;
 
@@ -306,7 +306,7 @@
       {t:'AKI- AkiConteos v2 - Infraestructura 3 (sin estimar) — Rodrigo Solis, Design → Nueva (0%)', p:0, l:'N'},
       {t:'AKI- AkiConteos v2 - Infraestructura 3 (sin estimar) — Moises Ernesto Cuca Vas, Active → En Progreso (0%)', p:0, l:'P'},
       {t:'Conteos V2 - Revisar la solución de Jeimy - Generar una versión escalable con la arquitectura actual (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'Conteos V2 - Revisar la solución de Jeimy - Generar un estándar para la migración de prototipos (sin estimar) — Moises Ernesto Cuca Vas, Design → Nueva (0%)', p:0, l:'N'},
+      {t:'Conteos V2 - Revisar la solución de Jeimy - Generar un estándar para la migración de prototipos (sin estimar) — Moises Ernesto Cuca Vas, New → Nueva (0%)', p:0, l:'N'},
       {t:'Conteos V2 - Revisar la solución de Jeimy - Generar una versión escalable con la arquitectura actual - Copy (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
       {t:'AKI- Sizing de nuevas funcionalidades de Consulta akiconteos v2 (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'}
     ]},
@@ -329,10 +329,10 @@
       {t:'1.3 Listado, búsqueda y filtrado de usuarios (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.3 [QA-Casos] Listado, búsqueda y filtrado de usuarios (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.4 Alta individual de usuario (\"Nuevo Usuario\") (24h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.4 Alta individual de usuario (\"Nuevo Usuario\") (sin estimar) — Samuel Alejandro Ruiz Escalona, Resolved → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.4 Alta individual de usuario (\"Nuevo Usuario\") (sin estimar) — Samuel Alejandro Ruiz Escalona, Ready → Completada (100%)', p:100, l:'C'},
       {t:'1.4 [QA-Casos] Alta individual de usuario (\"Nuevo Usuario\") (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.5 Edición de rol, tienda, región y estado de un usuario (8h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (sin estimar) — Samuel Alejandro Ruiz Escalona, Resolved → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (sin estimar) — Samuel Alejandro Ruiz Escalona, Ready → Completada (100%)', p:100, l:'C'},
       {t:'1.5 [QA-Casos] Edición de rol, tienda, región y estado de un usuario (1.2h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (8h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
       {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
