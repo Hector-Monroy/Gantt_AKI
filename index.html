@@ -239,9 +239,9 @@
             <li><b>En Progreso (0%):</b> Rodrigo Solis o Moises Ernesto Cuca Vas en estado Active; Samuel en estado Active o Resolved.</li>
             <li><b>Nueva (0%):</b> estado New o Design de cualquiera de los tres, y cualquier item sin asignar o asignado a alguien que no es parte del equipo de desarrollo (por ejemplo, quien crea los Features).</li>
           </ul>
-          El % de la barra es el promedio del % de todos los items de esa versión. Cobertura real (21 oct 2026, a partir del árbol del query "Claude Data" en ADO): Infraestructura 14 items (avance 79%, sin cambios), Gestión de usuarios y roles 34 items (avance 51%, sin cambios: dos casos de QA de Samuel Alejandro Ruiz Escalona — "1.4" y "1.5" — pasaron de Resolved a Active, mismo tramo 0%), Consulta de precios 18 items (avance 50%, sin cambios: "2.4 Precio normal y precio oferta" y "2.3 Ficha de producto" se asignaron a Rodrigo Solis y pasaron a Active, mismo tramo 0%; "2.6 Existencias en bodega HPC" y "2.3.2 Compilar Imágenes catalogo truper" pasaron de Ready a Closed, mismo tramo 100%), Conteo diario y especial 29 items (avance 36%, sin cambios: "Adaptar pruebas unitarias..." pasó de Ready a Closed, mismo tramo 100%), Reportes Conteo Diario y Especial 10 items (0%, todos "New" y sin asignar, sin cambios). Recepción Zigo/Mercadería y Reportes de Recepción (Features 15595 y 15596) siguen sin items hijos en ADO, así que muestran el alcance manual (bullets sin estatus) y su % se sigue reportando a mano. <b>Las horas y los sprints de las 7 versiones son siempre las que entregó el equipo</b> (320/300/308/340/360/320/170h) — Azure DevOps solo alimenta el % de avance, no la duración de los sprints.</span>
+          El % de la barra es el promedio del % de todos los items de esa versión. Cobertura real (26 oct 2026, corrida manual en vivo de la tarde, a partir del árbol del query "Claude Data" en ADO): Infraestructura 14 items (avance 79%, sin cambios), Gestión de usuarios y roles 34 items (avance 76%, subió de 63%: cinco historias de Rodrigo Solis — "1.3", "1.4", "1.5", "1.6" y "1.8" — pasaron a Ready, que para él vale 100% en vez de Resolved/Active que valen 0%/50%), Consulta de precios 25 items (avance 46%, bajó de 64%: se agregaron 7 casos de QA nuevos bajo el Feature 6439, todos de Samuel Alejandro Ruiz Escalona y en 0% — 6 en Active ("2.1", "2.2", "2.3", "2.4", "2.5" y "2.6" [QA]) y 1 en New ("2.10" [QA]) — la baja es solo por dilución del promedio, ningún item existente retrocedió), Conteo diario y especial 29 items (avance 38%, subió de 36%: "Registrar un entrada en el conteo" de Rodrigo Solis pasó de Resolved a Ready, 50% → 100%), Reportes Conteo Diario y Especial 10 items (0%, todos "New" y sin asignar, sin cambios). Recepción Zigo/Mercadería y Reportes de Recepción (Features 15595 y 15596) siguen sin items hijos en ADO, así que muestran el alcance manual (bullets sin estatus) y su % se sigue reportando a mano. <b>Las horas y los sprints de las 7 versiones son siempre las que entregó el equipo</b> (320/300/308/340/360/320/170h) — Azure DevOps solo alimenta el % de avance, no la duración de los sprints.</span>
       </span>
-      <span class="info-label">Avance real desde Azure DevOps (21 oct 2026)</span>
+      <span class="info-label">Avance real desde Azure DevOps (26 oct 2026, corrida en vivo)</span>
     </div>
   </div>
 
@@ -277,7 +277,7 @@
 (function(){
   var DAY = 86400000, WEEK = 7*DAY;
   var START = Date.UTC(2026,7,17); // 17 ago 2026, lunes
-  var TODAY = Date.UTC(2026,9,21); // 21 oct 2026
+  var TODAY = Date.UTC(2026,9,26); // 26 oct 2026
   var DAY_PX = 16;
   var TOP_H = 60, CHECK_ITEM_H = 22, CHECK_PAD = 12;
 
@@ -316,7 +316,7 @@
       {t:'1.1 [QA-Casos] Login corporativo con Microsoft 365 (9h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.1 [QA] Login corporativo con Microsoft 365 (15h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.10 Carga masiva: creación de pre-asignaciones y resumen de resultados (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.10 Carga masiva: creación de pre-asignaciones y resumen de resultados (sin estimar) — Samuel Alejandro Ruiz Escalona, Design → Nueva (0%)', p:0, l:'N'},
+      {t:'1.10 Carga masiva: creación de pre-asignaciones y resumen de resultados (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
       {t:'1.10 [QA-Casos] Carga masiva: creación de pre-asignaciones y resumen (2.4h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.11 Enforcement de permisos por tienda/región en backend (seguridad) (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
       {t:'1.11 Enforcement de permisos por tienda/región en backend (seguridad) (sin estimar) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
@@ -325,42 +325,49 @@
       {t:'1.2 Vinculación de cuenta autenticada con perfil/pre-asignación (14.4h) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.2 Vinculación de cuenta autenticada con perfil/pre-asignación (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.2 [QA-Casos] Vinculación de cuenta autenticada con perfil/pre-asignación (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'1.3 Listado, búsqueda y filtrado de usuarios (14.4h) — Rodrigo Solis, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'1.3 Listado, búsqueda y filtrado de usuarios (14.4h) — Rodrigo Solis, Ready → Completada (100%)', p:100, l:'C'},
       {t:'1.3 Listado, búsqueda y filtrado de usuarios (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.3 [QA-Casos] Listado, búsqueda y filtrado de usuarios (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'1.4 Alta individual de usuario ("Nuevo Usuario") (24h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.4 Alta individual de usuario ("Nuevo Usuario") (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.4 Alta individual de usuario ("Nuevo Usuario") (24h) — Rodrigo Solis, Ready → Completada (100%)', p:100, l:'C'},
+      {t:'1.4 Alta individual de usuario ("Nuevo Usuario") (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.4 [QA-Casos] Alta individual de usuario ("Nuevo Usuario") (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (8h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (8h) — Rodrigo Solis, Ready → Completada (100%)', p:100, l:'C'},
+      {t:'1.5 Edición de rol, tienda, región y estado de un usuario (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.5 [QA-Casos] Edición de rol, tienda, región y estado de un usuario (1.2h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (8h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (8h) — Rodrigo Solis, Ready → Completada (100%)', p:100, l:'C'},
+      {t:'1.6 Modelo Región → Tiendas y reasignación automática de Supervisor (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.6 [QA-Casos] Modelo Región → Tiendas y reasignación automática de Supervisor (3.6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'1.8 Carga masiva de usuarios: archivo/CSV y parseo tolerante (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.8 Carga masiva de usuarios: archivo/CSV y parseo tolerante (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.8 Carga masiva de usuarios: archivo/CSV y parseo tolerante (sin estimar) — Rodrigo Solis, Ready → Completada (100%)', p:100, l:'C'},
+      {t:'1.8 Carga masiva de usuarios: archivo/CSV y parseo tolerante (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.8 [QA-Casos] Carga masiva de usuarios: archivo/CSV y parseo tolerante (3h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'1.9 Carga masiva: validación previa y vista previa (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'1.9 Carga masiva: validación previa y vista previa (sin estimar) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'1.9 Carga masiva: validación previa y vista previa (sin estimar) — Samuel Alejandro Ruiz Escalona, Resolved → En Progreso (0%)', p:0, l:'P'},
       {t:'1.9 [QA-Casos] Carga masiva: validación previa y vista previa (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'Revisar QA-Cases para TDD - Módulo 1 - Usuarios (sin estimar) — Moises Ernesto Cuca Vas, Closed → Completada (100%)', p:100, l:'C'},
       {t:'2.3.1 Definir arquitectura y funcionamiento de repositorio de imágenes (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'}
     ]},
     {id:'v2b', code:'Versión 2', label:'Consulta de precios (308h)', slot:3, source:'ado', feature:'6439', subtasks:[
       {t:'AkiConteos: mostrar el kardex del producto (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'2.1 Búsqueda de producto por SKU (manual y escáner Zebra) (sin estimar) — Moises Ernesto Cuca Vas, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'2.2 Búsqueda vía parámetro URL (?sku=) (sin estimar) — Moises Ernesto Cuca Vas, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'2.4 Precio normal y precio oferta con validación de vigencia (sin estimar) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
-      {t:'2.5 Tarjetas de inventario (Existencia, Tránsito, OC, Múltiplo, Mínimo, Máximo) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.1 Búsqueda de producto por SKU (manual y escáner Zebra) (sin estimar) — Moises Ernesto Cuca Vas, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'2.1 [QA] Búsqueda de producto por SKU (manual y escáner Zebra) (4h) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.2 Búsqueda vía parámetro URL (?sku=) (sin estimar) — Moises Ernesto Cuca Vas, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'2.2 [QA] Búsqueda vía parámetro URL (?sku=) (4h) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.4 Precio normal y precio oferta con validación de vigencia (sin estimar) — Rodrigo Solis, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'2.4 [QA] Precio normal y precio oferta con validación de vigencia (4h) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.5 Tarjetas de inventario (Existencia, Tránsito, OC, Múltiplo, Mínimo, Máximo) (sin estimar) — Moises Ernesto Cuca Vas, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'2.5 [QA] Tarjetas de inventario (Existencia, Tránsito, OC, Múltiplo, Mínimo, Máximo) (4h) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
       {t:'2.6 Existencias en bodega HPC (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
       {t:'2.6 [QA-Casos] Existencias en bodega HPC (3h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
+      {t:'2.6 [QA] Existencias en bodega HPC (4h) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
       {t:'2.8 Solicitud de Ajuste de Inventario (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
       {t:'2.8 [QA-Casos] Solicitud de Ajuste de Inventario (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'2.9 Revisión de solicitudes de ajuste (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
       {t:'2.9 [QA-Casos] Revisión de solicitudes de ajuste (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'2.10 Diseño responsive Zebra vs. escritorio (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
       {t:'2.10 [QA-Casos] Diseño responsive (6h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'2.3 Ficha de producto: datos generales e imagen ampliable (60h) — Rodrigo Solis, Active → En Progreso (0%)', p:0, l:'P'},
+      {t:'2.10 [QA] Diseño responsive Zebra vs. escritorio (4h) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
+      {t:'2.3 Ficha de producto: datos generales e imagen ampliable (60h) — Rodrigo Solis, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'2.3 [QA] Ficha de producto: datos generales e imagen ampliable (4h) — Samuel Alejandro Ruiz Escalona, Active → En Progreso (0%)', p:0, l:'P'},
       {t:'2.7 Kardex de movimientos (últimos N, parametrizable) (sin estimar) — Sin asignar, New → Nueva (0%)', p:0, l:'N'},
       {t:'2.7 [QA-Casos] Kardex de movimientos (4h) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'AKI- ConteosV2-Consulta: Búsqueda inteligente de SKU en Consulta de Productos (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
@@ -392,7 +399,7 @@
       {t:'Escribir criterios de aceptación y escenarios de prueba para el flujo de Conteo Diario (sin estimar) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
       {t:'Escribir criterios de aceptación y escenarios de prueba (Conteo Especial) (sin estimar) — Samuel Alejandro Ruiz Escalona, New → Nueva (0%)', p:0, l:'N'},
       {t:'Iniciar un Conteo (sin estimar) — Rodrigo Solis, Closed → Completada (100%)', p:100, l:'C'},
-      {t:'Registrar un entrada en el conteo (sin estimar) — Rodrigo Solis, Resolved → En Progreso (50%)', p:50, l:'P'},
+      {t:'Registrar un entrada en el conteo (sin estimar) — Rodrigo Solis, Ready → Completada (100%)', p:100, l:'C'},
       {t:'Test - Creación de conteo (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'Test - Iniciar un conteo (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'},
       {t:'Test - Completar conteo (sin estimar) — Samuel Alejandro Ruiz Escalona, Closed → Completada (100%)', p:100, l:'C'}
